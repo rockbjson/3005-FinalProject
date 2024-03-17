@@ -3,14 +3,14 @@
 **101226835** <br>
 **18 March 2024**
 
-Video:  https://youtu.be/0cNrR0yAXxw 
+**Video:**  https://youtu.be/0cNrR0yAXxw 
 
-Repository includes:
+**Repository includes:**
 
 A3.py:      my application code <br>
 README.md   this file
 
-How to test my application: 
+**How to test my application:**
 
 1.  Ensure python is on your computer
 
