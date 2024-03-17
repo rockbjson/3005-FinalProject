@@ -1,7 +1,7 @@
-** COMP3005 Assignment3 <br>
-Ashley Fong <br>
-101226835 <br>
-18 March 2024 **
+**COMP3005 Assignment3** <br>
+**Ashley Fong** <br>
+**101226835** <br>
+**18 March 2024**
 
 Video:  https://youtu.be/0cNrR0yAXxw 
 
