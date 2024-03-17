@@ -1,4 +1,4 @@
-import psycopg2
+import psycopg2 
 
 connection = psycopg2.connect(user="postgres",
                                 password="postgres",
