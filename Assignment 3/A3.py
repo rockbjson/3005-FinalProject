@@ -1,5 +1,32 @@
 import psycopg2
 
+connection = psycopg2.connect(user="postgres",
+                                password="postgres",
+                                host="127.0.0.1",
+                                port="5432",
+                                database="assignment3")
+
+cursor = connection.cursor()
+create_table_query = '''CREATE TABLE IF NOT EXISTS students 
+        (student_id   SERIAL  PRIMARY KEY,
+        first_name    TEXT    NOT NULL,
+        last_name     TEXT    NOT NULL,
+        email         TEXT    NOT NULL    UNIQUE,
+        enrollment_date  DATE); '''
+
+cursor.execute(create_table_query)
+connection.commit()
+print("Table created successfully in PostgreSQL ")
+
+insert_query = """INSERT INTO students (first_name, last_name, email, enrollment_date) VALUES
+                ('John', 'Doe', 'john.doe@example.com', '2023-09-01'),
+                ('Jane', 'Smith', 'jane.smith@example.com', '2023-09-01'),
+                ('Jim', 'Beam', 'jim.beam@example.com', '2023-09-02');"""
+
+cursor.execute(insert_query)
+connection.commit()
+print("Table inserted successfully in PostgreSQL ")
+
 
 def getAllStudents(connection, cursor):
     cursor.execute("SELECT  * from students")
@@ -39,33 +66,6 @@ def deleteStudent(connection, cursor):
     cursor.execute("""DELETE from students where student_id = %s;""", (student_id))
     connection.commit()
 
-
-connection = psycopg2.connect(user="postgres",
-                                password="postgres",
-                                host="127.0.0.1",
-                                port="5432",
-                                database="assignment3")
-
-cursor = connection.cursor()
-create_table_query = '''CREATE TABLE IF NOT EXISTS students 
-        (student_id   SERIAL  PRIMARY KEY,
-        first_name    TEXT    NOT NULL,
-        last_name     TEXT    NOT NULL,
-        email         TEXT    NOT NULL    UNIQUE,
-        enrollment_date  DATE); '''
-
-cursor.execute(create_table_query)
-connection.commit()
-print("Table created successfully in PostgreSQL ")
-
-insert_query = """INSERT INTO students (first_name, last_name, email, enrollment_date) VALUES
-                ('John', 'Doe', 'john.doe@example.com', '2023-09-01'),
-                ('Jane', 'Smith', 'jane.smith@example.com', '2023-09-01'),
-                ('Jim', 'Beam', 'jim.beam@example.com', '2023-09-02');"""
-
-cursor.execute(insert_query)
-connection.commit()
-print("Table inserted successfully in PostgreSQL ")
 
 while True:
 
