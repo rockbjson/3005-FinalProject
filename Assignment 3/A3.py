@@ -1,5 +1,6 @@
 import psycopg2
 
+
 def getAllStudents(connection, cursor):
     cursor.execute("SELECT  * from students")
     getAllStudents = cursor.fetchall()
@@ -94,55 +95,3 @@ while True:
 cursor.close()
 connection.close()
 print("PostgreSQL connection is closed")
-
-# create_table_query = '''CREATE TABLE students
-#         (student_id   SERIAL  PRIMARY KEY,
-#         first_name    TEXT    NOT NULL,
-#         last_name     TEXT    NOT NULL,
-#         email         TEXT    NOT NULL    UNIQUE,
-#         enrollment_date  DATE); '''
-
-# cursor.execute(create_table_query)
-# connection.commit()
-# print("Table created successfully in PostgreSQL ")
-
-# insert_query = """INSERT INTO students (first_name, last_name, email, enrollment_date) VALUES
-#                 ('John', 'Doe', 'john.doe@example.com', '2023-09-01'),
-#                 ('Jane', 'Smith', 'jane.smith@example.com', '2023-09-01'),
-#                 ('Jim', 'Beam', 'jim.beam@example.com', '2023-09-02');"""
-
-# cursor.execute(insert_query)
-# connection.commit()
-# print("Table inserted successfully in PostgreSQL ")
-
-# cursor.execute("SELECT  * from students")
-# getAllStudents = cursor.fetchall()
-
-# print("\n")
-
-# print("getAllStudents: ")
-# for i in getAllStudents:
-#     formatDate = i[4].strftime('%Y-%m-%d')
-#     # modified_row = list(i)
-#     # modified_row[4] = formatDate  # Assuming the date column is the fifth column (index 4)
-
-#     print(i[0], i[1], i[2], i[3], formatDate)
-
-# print("\n")
-
-
-# addStudent = """INSERT INTO students (first_name, last_name, email, enrollment_date) VALUES
-#                 ('ashley', 'fong', 'ashley.fong@gmail.com', '2021-09-01')"""
-# cursor.execute(addStudent)
-# connection.commit()
-# print("Student added successfully in PostgreSQL ")
-
-# updateStudentEmail = """UPDATE students SET email = 'ashley.fong@example.com' WHERE student_id = 4"""
-# cursor.execute(updateStudentEmail)
-# connection.commit()
-# print("Email updated successfully in PostgreSQl ")
-
-# deleteStudent = """DELETE from students where student_id = 1"""
-# cursor.execute(deleteStudent)
-# connection.commit()
-# print("Student deleted successfully in PostgreSQL ")
