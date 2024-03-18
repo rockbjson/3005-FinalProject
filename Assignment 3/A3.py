@@ -1,5 +1,6 @@
 import psycopg2 
 
+# connecting to server
 connection = psycopg2.connect(user="postgres",
                                 password="postgres",
                                 host="127.0.0.1",
@@ -9,6 +10,7 @@ connection = psycopg2.connect(user="postgres",
 cursor = connection.cursor()
 
 
+# getAllStudents
 def getAllStudents(connection, cursor):
     try:
         cursor.execute("SELECT  * from students")
@@ -26,7 +28,7 @@ def getAllStudents(connection, cursor):
         print("Error getting all students ")
 
 
-
+# addStudent
 def addStudent(connection, cursor):
     try:
         first_name = input("Enter the first name: ")
@@ -42,7 +44,7 @@ def addStudent(connection, cursor):
         print("Error adding student ")
 
 
-
+# updateStudentEmail
 def updateStudentEmail(connection, cursor):
     try:
         email = input("Enter the new email: ")
@@ -54,7 +56,7 @@ def updateStudentEmail(connection, cursor):
     except: 
         print("Error updating student email ")
 
-
+# deleteStudent
 def deleteStudent(connection, cursor):
     try:
         student_id = input("Enter the student id: ")
@@ -93,3 +95,4 @@ while True:
 cursor.close()
 connection.close()
 print("PostgreSQL connection is closed")
+
