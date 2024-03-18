@@ -1,13 +1,17 @@
 import psycopg2 
+from psycopg2 import Error
 
 # connecting to server
-connection = psycopg2.connect(user="postgres",
-                                password="postgres",
-                                host="127.0.0.1",
-                                port="5432",
-                                database="assignment3")
+try:
+    connection = psycopg2.connect(user="postgres",
+                                    password="postgres",
+                                    host="127.0.0.1",
+                                    port="5432",
+                                    database="sa")
 
-cursor = connection.cursor()
+    cursor = connection.cursor()
+except(Exception,Error) as error:
+    print("Error while connecting to PostgreSQL: ", error)
 
 
 # getAllStudents
@@ -24,8 +28,8 @@ def getAllStudents(connection, cursor):
 
             print(f"{i[0]:<6}{i[1]:<13}{i[2]:<13}{i[3]:<30}{formatDate}")
 
-    except:
-        print("Error getting all students ")
+    except(Exception,Error) as error:
+        print("Error getting all students: ", error)
 
 
 # addStudent
@@ -42,8 +46,8 @@ def addStudent(connection, cursor):
         print("Student added successfully ")
 
     
-    except: 
-        print("Error adding student ")
+    except(Exception,Error) as error:        
+        print("Error adding student: ", error)
 
 
 # updateStudentEmail
@@ -57,8 +61,8 @@ def updateStudentEmail(connection, cursor):
         print("Student email updated successfully ")
 
 
-    except: 
-        print("Error updating student email ")
+    except(Exception,Error) as error:        
+        print("Error updating student email: ", error)
 
 # deleteStudent
 def deleteStudent(connection, cursor):
@@ -69,8 +73,8 @@ def deleteStudent(connection, cursor):
         print("Student deleted successfully ")
 
 
-    except:
-        print("Error deleting student ")
+    except(Exception,Error) as error:        
+        print("Error deleting student: ", error)
 
 
 # looping menu
