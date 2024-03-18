@@ -7,64 +7,62 @@ connection = psycopg2.connect(user="postgres",
                                 database="assignment3")
 
 cursor = connection.cursor()
-create_table_query = '''CREATE TABLE IF NOT EXISTS students 
-        (student_id   SERIAL  PRIMARY KEY,
-        first_name    TEXT    NOT NULL,
-        last_name     TEXT    NOT NULL,
-        email         TEXT    NOT NULL    UNIQUE,
-        enrollment_date  DATE); '''
-
-cursor.execute(create_table_query)
-connection.commit()
-print("Table created successfully in PostgreSQL ")
-
-insert_query = """INSERT INTO students (first_name, last_name, email, enrollment_date) VALUES
-                ('John', 'Doe', 'john.doe@example.com', '2023-09-01'),
-                ('Jane', 'Smith', 'jane.smith@example.com', '2023-09-01'),
-                ('Jim', 'Beam', 'jim.beam@example.com', '2023-09-02');"""
-
-cursor.execute(insert_query)
-connection.commit()
-print("Table inserted successfully in PostgreSQL ")
 
 
 def getAllStudents(connection, cursor):
-    cursor.execute("SELECT  * from students")
-    getAllStudents = cursor.fetchall()
+    try:
+        cursor.execute("SELECT  * from students")
+        getAllStudents = cursor.fetchall()
 
-    print("getAllStudents: ")
+        print("getAllStudents: ")
 
-    print("ID   First Name   Last Name     Email                        Enrollment Date")
-    for i in getAllStudents:
-        formatDate = i[4].strftime('%Y-%m-%d')
+        print("ID   First Name   Last Name     Email                        Enrollment Date")
+        for i in getAllStudents:
+            formatDate = i[4].strftime('%Y-%m-%d')
 
-        print(f"{i[0]:<6}{i[1]:<13}{i[2]:<13}{i[3]:<30}{formatDate}")
+            print(f"{i[0]:<6}{i[1]:<13}{i[2]:<13}{i[3]:<30}{formatDate}")
+
+    except:
+        print("Error getting all students ")
 
 
 
 def addStudent(connection, cursor):
-    first_name = input("Enter the first name: ")
-    last_name = input("Enter the last name: ")
-    email = input("Enter the email: ")
-    enrollment_date = input("Enter the enrollment date [yyyy-mm-dd]: ")
-    cursor.execute("""INSERT INTO students (first_name, last_name, email, enrollment_date) VALUES
-                (%s, %s, %s, %s);""",(first_name, last_name, email, enrollment_date))
+    try:
+        first_name = input("Enter the first name: ")
+        last_name = input("Enter the last name: ")
+        email = input("Enter the email: ")
+        enrollment_date = input("Enter the enrollment date [yyyy-mm-dd]: ")
+        cursor.execute("""INSERT INTO students (first_name, last_name, email, enrollment_date) VALUES
+                    (%s, %s, %s, %s);""",(first_name, last_name, email, enrollment_date))
 
-    connection.commit()
+        connection.commit()
+    
+    except: 
+        print("Error adding student ")
+
 
 
 def updateStudentEmail(connection, cursor):
-    email = input("Enter the new email: ")
-    student_id = input("Enter the student id: ")
-    cursor.execute("""UPDATE students SET email = %s WHERE student_id = %s;""", (email, student_id))
+    try:
+        email = input("Enter the new email: ")
+        student_id = input("Enter the student id: ")
+        cursor.execute("""UPDATE students SET email = %s WHERE student_id = %s;""", (email, student_id))
 
-    connection.commit()
+        connection.commit()
+
+    except: 
+        print("Error updating student email ")
 
 
 def deleteStudent(connection, cursor):
-    student_id = input("Enter the student id: ")
-    cursor.execute("""DELETE from students where student_id = %s;""", (student_id))
-    connection.commit()
+    try:
+        student_id = input("Enter the student id: ")
+        cursor.execute("""DELETE from students where student_id = %s;""", (student_id))
+        connection.commit()
+
+    except:
+        print("Error deleting student ")
 
 
 while True:
@@ -86,7 +84,7 @@ while True:
         updateStudentEmail(connection,cursor)
     elif choice == '4':
         deleteStudent(connection,cursor)
-    elif choice == '5':
+    elif choice == '5x':
         print("Exiting program.")
         break
     else:
