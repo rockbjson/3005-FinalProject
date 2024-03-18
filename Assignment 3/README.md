@@ -3,12 +3,13 @@
 **101226835** <br>
 **18 March 2024**
 
-**Video:**  https://youtu.be/0cNrR0yAXxw 
+**Video:**  https://youtu.be/t6lRPXtADac 
 
 **Repository includes:**
 
 A3.py:      my application code <br>
-README.md   this file
+Data.sql:   queries to create and insert data into the table <br>
+README.md:  this file
 
 **How to test my application:**
 
