@@ -16,7 +16,7 @@ def getAllStudents(connection, cursor):
         cursor.execute("SELECT  * from students")
         getAllStudents = cursor.fetchall()
 
-        print("getAllStudents: ")
+        print("\ngetAllStudents: ")
 
         print("ID   First Name   Last Name     Email                        Enrollment Date")
         for i in getAllStudents:
@@ -39,6 +39,8 @@ def addStudent(connection, cursor):
                     (%s, %s, %s, %s);""",(first_name, last_name, email, enrollment_date))
 
         connection.commit()
+        print("Student added successfully ")
+
     
     except: 
         print("Error adding student ")
@@ -52,6 +54,8 @@ def updateStudentEmail(connection, cursor):
         cursor.execute("""UPDATE students SET email = %s WHERE student_id = %s;""", (email, student_id))
 
         connection.commit()
+        print("Student email updated successfully ")
+
 
     except: 
         print("Error updating student email ")
@@ -62,11 +66,14 @@ def deleteStudent(connection, cursor):
         student_id = input("Enter the student id: ")
         cursor.execute("""DELETE from students where student_id = %s;""", (student_id))
         connection.commit()
+        print("Student deleted successfully ")
+
 
     except:
         print("Error deleting student ")
 
 
+# looping menu
 while True:
 
     print("\nMenu:")
@@ -86,7 +93,7 @@ while True:
         updateStudentEmail(connection,cursor)
     elif choice == '4':
         deleteStudent(connection,cursor)
-    elif choice == '5x':
+    elif choice == '5':
         print("Exiting program.")
         break
     else:
