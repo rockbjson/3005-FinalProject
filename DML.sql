@@ -28,11 +28,9 @@ VALUES ('09:00:00', '17:00:00', TRUE),
         ('08:00:00', '17:00:00', TRUE);
 
 INSERT INTO schedule (room_number, class_type, start_time, end_time, trainer, members) 
-VALUES (1, 'Yoga', '08:00:00', '09:00:00', 1, '{1,2}')
+VALUES (1, 'Yoga', '08:00:00', '09:00:00', 1, '{1,2}'),
         (2, 'Spinning', '08:00:00', '09:30:00', 2, '{2}');
 
 INSERT INTO equipment (type, quantity, class_id) 
-VALUES ('Yoga mat', 10, 1)
+VALUES ('Yoga mat', 10, 1),
         ('Cycling shoes', 10, 1)
-
-
