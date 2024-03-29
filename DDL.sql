@@ -45,13 +45,13 @@ CREATE TABLE schedule (
     end_time TIME,
     trainer INT NOT NULL, 
     members INT[],
---     Foreign Key (members) References members(member_id),
     Foreign Key (trainer) References trainers(trainer_id),
     Foreign Key (room_number) References rooms(number)
 );
 
 CREATE TABLE equipment (
     equipment_id SERIAL Primary Key,
+    type VARCHAR(20),
     quantity INT,
     class_id INT,
     Foreign Key (class_id) References schedule(class_id)
