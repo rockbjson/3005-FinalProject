@@ -4,7 +4,7 @@
 -- Team 19
 -- Tanisi Das 101216265
 -- Ashley Fong 101226835
--- 10 April 2024
+-- 10 April 2024 
 
 CREATE TABLE members (
     member_id SERIAL Primary Key, 
