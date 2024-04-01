@@ -12,25 +12,25 @@ INSERT INTO members (first_name, last_name, payment_date)
 VALUES ('Ashley', 'Fong', '2023-09-01'), 
         ('Tanisi', 'Das', '2023-07-01');
 
-INSERT INTO trainers (first_name, last_name, class_type, start_time, end_time) 
-VALUES ('Bob', 'Smith', 'Yoga', '09:00:00', '13:00:00'), 
-        ('Ana', 'Lee', 'Spinning','11:00:00', '17:00:00');
+INSERT INTO trainers (first_name, last_name, class_type, available) 
+VALUES ('Bob', 'Smith', 'Yoga', (ARRAY[FALSE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE])), 
+        ('Ana', 'Lee', 'Spinning', (ARRAY[TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE]));
 
 INSERT INTO admin_staff (first_name, last_name) 
 VALUES ('John', 'Smith'), 
         ('Lisa', 'Lee');
 
-INSERT INTO rooms (start_time, end_time, available) 
-VALUES ('09:00:00', '17:00:00', TRUE), 
-        ('08:00:00', '17:00:00', TRUE),
-        ('08:00:00', '17:00:00', TRUE),
-        ('08:00:00', '17:00:00', TRUE),
-        ('08:00:00', '17:00:00', TRUE);
+INSERT INTO rooms (times) 
+VALUES (ARRAY[FALSE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE]), 
+        (ARRAY[TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE]),
+        (ARRAY[TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE]),
+        (ARRAY[TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE]),
+        (ARRAY[TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE]);
 
 INSERT INTO schedule (room_number, class_type, start_time, end_time, trainer, members) 
 VALUES (1, 'Yoga', '08:00:00', '09:00:00', 1, '{1,2}'),
-        (2, 'Spinning', '08:00:00', '09:30:00', 2, '{2}');
+        (2, 'Spinning', '010:00:00', '11:30:00', 2, '{2}');
 
 INSERT INTO equipment (type, quantity, class_id) 
 VALUES ('Yoga mat', 10, 1),
-        ('Cycling shoes', 10, 1)
+        ('Cycling shoes', 10, 2)

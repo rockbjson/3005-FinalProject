@@ -12,6 +12,8 @@ CREATE TABLE members (
     last_name VARCHAR(20) NOT NULL, 
     weight_goal INT, 
     time_goal INT, 
+    weight INT,
+    height INT,
     payment_date DATE
 );
 
@@ -20,21 +22,19 @@ CREATE TABLE trainers (
     first_name VARCHAR(20) NOT NULL,
     last_name VARCHAR(20) NOT NULL, 
     class_type VARCHAR(20) NOT NULL,
-    start_time TIME,
-    end_time TIME
+    available BOOLEAN[]
 );
 
 CREATE TABLE admin_staff (
-    staff_id SERIAL Primary Key,
+    admin_id SERIAL Primary Key,
     first_name VARCHAR(20) NOT NULL,
     last_name VARCHAR(20) NOT NULL
 );
 
 CREATE TABLE rooms (
     number SERIAL Primary Key,
-    start_time TIME,
-    end_time TIME,
-    available BOOLEAN NOT NULL
+    times BOOLEAN[]
+    -- available BOOLEAN NOT NULL
 );
 
 CREATE TABLE schedule (
