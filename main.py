@@ -5,7 +5,7 @@ from datetime import date, timedelta, datetime
 con = psycopg2.connect(
     database="finalproject",
     user="postgres",
-    password="postgres",
+    password="37293",
     host="localhost",
     port= '5432'
     )
@@ -61,6 +61,16 @@ def manage_profile(member_id):
 
 # member registration for classes INC
 def class_register(member_id):
+    #display classes
+    cursor_obj.execute(("SELECT class_id, room_number, class_type, start_time, end_time, trainer FROM schedule;"))
+    classes = cursor_obj.fetchall()
+
+    print("Class ID   Room Number     Type      Start Time     End Time    Trainer")
+    for i in classes:
+        start = i[3].strftime('%H:%M:%S')
+        end = i[4].strftime('%H:%M:%S')
+
+        print(f"{i[1]:<6}{i[2]:<10}{start:<15}{end:<15}{i[5]:<20}")
 
     class_id = input("Enter class id to register: ")
 
@@ -196,13 +206,45 @@ def book_room():
     print("Room    Availability")
     print("          8      9      10     11    12     13     14     15    16    17")
     for i in rooms:
-        times = i[1]  
+        times = i[1]
 
         print(f"{i[0]:<7}", times)
 
     room_num = input("Enter room number: ")
     start_input = input("Enter start time: ")
     end_input = input("Enter end time: ")
+
+    cursor_obj.execute(("SELECT times FROM rooms;"))
+    rooms = cursor_obj.fetchall()
+    print(rooms)
+
+    available_rooms = [[] for i in range(5)]
+
+    time_val = 8
+    room_index = 0
+    time_index = 0
+    bool_index = 0
+    for room in rooms:
+        for times in room:
+            time_int = 8
+            for time in times:
+                if (time == True):
+                    available_rooms[room_index][time_index][bool_index] = time_val
+                bool_index += 1
+            time_val += 1
+            time_index += 1
+        room_index += 1
+
+    print(available_rooms)
+""""
+    cursor_obj.execute("SELECT available FROM trainers;")
+    trainers = cursor_obj.fetchall()
+
+    available_trainers = []
+
+
+
+
 
     # if available[start_input-7] = TRUE
     cursor_obj.execute("SELECT trainer_id, first_name, last_name FROM trainers WHERE available[%s] = TRUE AND ;", (start_input-7))
@@ -220,9 +262,10 @@ def book_room():
     # if start_input >= start_time & end_input <= end_time:
         
 
-        # cursor_obj.execute("UPDATE rooms SET start_time = %s WHERE number = %s", (start_time, room_num))
-        # how to check if you update start or end time ??????
-        con.commit()
+    # cursor_obj.execute("UPDATE rooms SET start_time = %s WHERE number = %s", (start_time, room_num))
+    # how to check if you update start or end time ??????
+    con.commit()
+    """
     
 # signing out equipmement 
 # def equipment_maintenance()
@@ -259,13 +302,15 @@ def admin_menu():
             book_room()
 
         elif choice == '2':
-            equipment_maintenance()
+            #equipment_maintenance()
+            print("Something")
 
         elif choice == '3':
             update_schedule()
 
         elif choice == '4':
-            process_payment()
+            print("Something")
+            #process_payment()
             # make_payment(first_name, last_name, payment_amt) ????????
             
         # returns to main menu
