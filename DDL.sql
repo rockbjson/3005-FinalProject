@@ -34,7 +34,6 @@ CREATE TABLE admin_staff (
 CREATE TABLE rooms (
     number SERIAL Primary Key,
     times BOOLEAN[]
-    -- available BOOLEAN NOT NULL
 );
 
 CREATE TABLE schedule (
