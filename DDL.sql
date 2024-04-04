@@ -11,7 +11,7 @@ CREATE TABLE members (
     first_name VARCHAR(20) NOT NULL,
     last_name VARCHAR(20) NOT NULL, 
     weight_goal INT, 
-    time_goal INT, 
+    running_goal INT,
     weight INT,
     height INT,
     payment_date DATE
@@ -52,6 +52,12 @@ CREATE TABLE equipment (
     equipment_id SERIAL Primary Key,
     type VARCHAR(20),
     quantity INT,
-    class_id INT,
-    Foreign Key (class_id) References schedule(class_id)
+    class_type VARCHAR(20)
+);
+
+CREATE TABLE payment_history (
+    first_name VARCHAR(20),
+    last_name VARCHAR(20),
+    payment_date DATE,
+    payment_amount INT
 );
