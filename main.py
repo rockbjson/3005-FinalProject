@@ -258,7 +258,7 @@ def display_member_schedule(member_id):
                        "start_time ASC;", (member_id))
 
     sessions = cursor_obj.fetchall()
-    print("\nPERSONAL SESSION")
+    print("\nPERSONAL SESSIONS")
     print("Room    Type        Start Time     End Time      Trainer")
     print("--------------------------------------------------------")
     for i in sessions:
@@ -360,15 +360,29 @@ def display_trainer_schedule(trainer_id):
     cursor_obj.execute("SELECT class_id, room_number, class_type, start_time, end_time, members FROM schedule WHERE "
                        "trainer = %s ORDER BY start_time ASC;", (trainer_id))
     trainer_schedule = cursor_obj.fetchall()
-
-    print("\nClassID  Room   Type    Start Time     End Time    Members")
+    print("\nREGULAR CLASSES")
+    print("Room   Type    Start Time     End Time    Members")
     print("----------------------------------------------------------")
     for i in trainer_schedule:
         start = i[3].strftime('%H:%M:%S')
         end = i[4].strftime('%H:%M:%S')
         members = i[5]
 
-        print(f"{i[0]:<9}{i[1]:<7}{i[2]:<8}{start:<15}{end:<11}",  members)
+        print(f"{i[1]:<7}{i[2]:<8}{start:<15}{end:<11}",  members)
+
+    cursor_obj.execute("SELECT room_number, priv_sessions.class_type, start_time, end_time, member FROM "
+                       "priv_sessions JOIN "
+                       "trainers ON priv_sessions.trainer = trainers.trainer_id WHERE trainer = %s ORDER BY "
+                       "start_time ASC;", (trainer_id))
+    sessions = cursor_obj.fetchall()
+    print("\nPERSONAL SESSIONS")
+    print("Room    Type        Start Time     End Time      Member")
+    print("--------------------------------------------------------")
+    for i in sessions:
+        start = i[2].strftime('%H:%M:%S')
+        end = i[3].strftime('%H:%M:%S')
+
+        print(f"{i[0]:<8}{i[1]:<12}{start:<15}{end:<14}{i[4]:<14}")
 
 # display trainer menu 
 def trainer_menu(trainer_id):
