@@ -61,3 +61,14 @@ CREATE TABLE payment_history (
     payment_date DATE,
     payment_amount INT
 );
+
+CREATE TABLE priv_sessions (
+    room_number INT,
+    class_type VARCHAR(20),
+    start_time TIME,
+    end_time TIME,
+    trainer INT,
+    member INT,
+    Foreign Key (trainer) References trainers(trainer_id),
+	Foreign Key (member) References members(member_id)
+);
