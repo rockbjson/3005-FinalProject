@@ -63,6 +63,7 @@ CREATE TABLE payment_history (
 );
 
 CREATE TABLE priv_sessions (
+    session_id SERIAL Primary Key,
     room_number INT,
     class_type VARCHAR(20),
     start_time TIME,

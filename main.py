@@ -77,7 +77,7 @@ def class_register(member_id):
 
         print(f"{i[0]:<10}{i[1]:<10}{i[2]:<12}{start:<15}{end:<14}{i[5]:<20}")
 
-    class_request = input("Enter class id to register: ")
+    class_request = input("Enter class ID to register: ")
 
     cursor_obj.execute("SELECT start_time FROM schedule WHERE class_id = %s", (class_request))
     start_input = cursor_obj.fetchall()
@@ -119,6 +119,99 @@ def class_register(member_id):
 
     else:
         print("Requested class conflicts with your schedule.")
+
+# drop a class
+def drop_class(member_id):
+    # display classes
+    cursor_obj.execute(
+        "SELECT class_id, room_number, schedule.class_type, start_time, end_time, first_name FROM schedule JOIN trainers ON schedule.trainer = trainers.trainer_id ORDER BY class_id ASC;",
+        (member_id))
+    classes = cursor_obj.fetchall()
+
+    print("\nClassID   Room      Type        Start Time     End Time      Trainer")
+    print("--------------------------------------------------------------------")
+    for i in classes:
+        start = i[3].strftime('%H:%M:%S')
+        end = i[4].strftime('%H:%M:%S')
+
+        print(f"{i[0]:<10}{i[1]:<10}{i[2]:<12}{start:<15}{end:<14}{i[5]:<20}")
+
+    class_request = input("Enter class ID to drop: ")
+
+    cursor_obj.execute("SELECT start_time FROM schedule WHERE class_id = %s", (class_request))
+    start_input = cursor_obj.fetchall()
+
+    if not start_input:
+        print("Class does not exist.")
+        return
+
+    # !!! remove class here !!!
+    cursor_obj.execute("UPDATE schedule SET members = array_remove(members, %s) WHERE class_id = %s;",
+                       (member_id, class_request))
+    con.commit()
+    print("Class dropped from schedule.")
+
+# cancel a private session
+def cancel_session(member_id):
+    # display all sessions
+    cursor_obj.execute("SELECT session_id, room_number, priv_sessions.class_type, start_time, end_time, first_name "
+                       "FROM "
+                       "priv_sessions JOIN "
+                       "trainers ON priv_sessions.trainer = trainers.trainer_id WHERE member = %s ORDER BY "
+                       "start_time ASC;", (member_id))
+
+    sessions = cursor_obj.fetchall()
+    print("\nPERSONAL SESSIONS")
+    print("Session ID   Room    Type        Start Time     End Time      Trainer")
+    print("---------------------------------------------------------------------")
+    for i in sessions:
+        start = i[3].strftime('%H:%M:%S')
+        end = i[4].strftime('%H:%M:%S')
+
+        print(f"{i[0]:<13}{i[1]:<8}{i[2]:<12}{start:<15}{end:<14}{i[5]:<15}")
+
+    session_request = input("Enter session ID to drop: ")
+
+    cursor_obj.execute("SELECT start_time FROM schedule WHERE class_id = %s", (session_request))
+    start_input = cursor_obj.fetchall()
+
+    if not start_input:
+        print("Session does not exist.")
+        return
+
+    cursor_obj.execute("SELECT start_time FROM priv_sessions WHERE session_id = %s" % (session_request))
+    start_time = cursor_obj.fetchall()[0][0]
+    start_hour = start_time.hour
+
+    cursor_obj.execute("SELECT end_time FROM priv_sessions WHERE session_id = %s" % (session_request))
+    end_time = cursor_obj.fetchall()[0][0]
+    end_hour = end_time.hour
+
+    cursor_obj.execute("SELECT room_number FROM priv_sessions WHERE session_id = %s" % session_request)
+    room_number = cursor_obj.fetchall()[0][0]
+
+    cursor_obj.execute(("SELECT trainer FROM priv_sessions WHERE session_id = %s") % session_request)
+    trainer_id = cursor_obj.fetchall()[0][0]
+
+    j = int(start_hour) - 7
+    for i in range(int(end_hour) - int(start_hour)):
+        cursor_obj.execute("UPDATE rooms SET times[%s] = TRUE WHERE number = %s;", (j, room_number))
+        j += 1
+        con.commit()
+
+    k = int(start_hour) - 7
+    for i in range(int(end_hour) - int(start_hour)):
+        cursor_obj.execute("UPDATE trainers SET available[%s] = TRUE WHERE trainer_id = %s;", (k,
+                                                                                                trainer_id))
+        k += 1
+        con.commit()
+
+    # !!! remove session here !!!
+    cursor_obj.execute("DELETE FROM priv_sessions WHERE session_id = %s;",
+                       (session_request))
+    con.commit()
+    print("Session canceled.")
+
 
 # member registration for private session
 def session_register(member_id):
@@ -279,28 +372,96 @@ def renew_membership(member_id):
     if (make_payment(first_name, last_name, 800)):
         new_date = payment_date + timedelta(days=365)
         cursor_obj.execute("UPDATE members SET payment_date = %s WHERE member_id = %s", (new_date, member_id))
+        con.commit()
 
+def cancel_membership(member_id):
+    print("\nAre you sure? Your membership is non-refundable. You will lose access to all classes and sessions "
+          "immediately.")
+    choice = input("Cancel membership? Y/N: ")
+    if (choice == 'Y'):
+        member = member_id[0]
+        cursor_obj.execute("DELETE FROM members WHERE member_id = %s" % (member))
+        con.commit()
+        cursor_obj.execute("DELETE FROM priv_sessions WHERE member = %s;" % member)
+        con.commit()
+        cursor_obj.execute("UPDATE schedule SET members = array_remove(members, %s) WHERE %s = ANY("
+                           "members);" % (member, member))
+        start_menu()
+    elif (choice == 'N'):
+        print("Membership cancellation failed.")
+        return
+    else:
+        print("Invalid selection.")
+
+def manage_classes(member_id):
+    choice = 0
+    while(choice != 3):
+        print("\n1. Register for a new class"
+              "\n2. Drop a class"
+              "\n3. Exit")
+        choice = input("\nSelect 1/2/3: ")
+        if (choice == '1'):
+            class_register(member_id)
+        elif (choice == '2'):
+            drop_class(member_id)
+        elif (choice == '3'):
+            return
+        else:
+            print("Invalid selection.")
+
+def manage_sessions(member_id):
+    choice = 0
+    while (choice != 3):
+        print("\n1. Register for a new session"
+              "\n2. Cancel a session"
+              "\n3. Exit")
+        choice = input("\nSelect 1/2/3: ")
+        if (choice == '1'):
+            session_register(member_id)
+        elif (choice == '2'):
+            cancel_session(member_id)
+        elif (choice == '3'):
+            return
+        else:
+            print("Invalid selection.")
+
+# mange membership menu
+def manage_membership(member_id):
+    choice = 0
+    while (choice != 3):
+        print("\n1. Renew membership"
+              "\n2. Cancel membership"
+              "\n3. Exit")
+        choice = input("\nSelect 1/2/3: ")
+        if (choice == '1'):
+            renew_membership(member_id)
+        elif (choice == '2'):
+            cancel_membership(member_id)
+        elif (choice == '3'):
+            return
+        else:
+            print("Invalid selection.")
 # display member menu
 def member_menu(member_id):
     choice = 0
     while(choice != 5):
         print("\nMEMBER MENU"
             "\n1. Manage profile",
-            "\n2. Register for classes",
-            "\n3. Register for personal session",
+            "\n2. Add/drop a class",
+            "\n3. Book/cancel a personal session",
             "\n4. Display dashboard",
             "\n5. Display personal schedule",
-            "\n6. Renew membership"
+            "\n6. Manage membership"
             "\n7. Log out and return to main menu")
         choice = input("\nSelect (1/2/3/4/5): ")
         if choice == '1':
             manage_profile(member_id)
 
         elif choice == '2':
-            class_register(member_id)
+            manage_classes(member_id)
 
         elif choice == '3':
-            session_register(member_id)
+            manage_sessions(member_id)
             
         elif choice == '4':
             display_member_dashboard(member_id)
@@ -309,7 +470,7 @@ def member_menu(member_id):
             display_member_schedule(member_id)
 
         elif choice == '6':
-            renew_membership(member_id)
+            manage_membership(member_id)
 
         # returns to main menu
         elif choice == '7':
@@ -539,6 +700,7 @@ def make_payment(first_name, last_name, payment_amt):
         payment_date = date.today()
         cursor_obj.execute("INSERT INTO payment_history (first_name, last_name, payment_date, payment_amount) "
                            "VALUES (%s, %s, %s, %s);", (first_name, last_name, payment_date, payment_amt))
+        con.commit()
         return True
     print("Payment failed.")
     return False
@@ -589,6 +751,7 @@ def new_user():
     if (make_payment(first_name, last_name, 800)) :
         new_date = current_date + timedelta(days=365)
         cursor_obj.execute("INSERT INTO members (first_name, last_name, payment_date) VALUES (%s, %s, %s);", (first_name, last_name, new_date))
+        con.commit()
         print("Welcome! You are now a member at BuffBuddy.")
     else:
         print("You have to make a payment to register as a member.")
