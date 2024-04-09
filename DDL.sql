@@ -71,5 +71,6 @@ CREATE TABLE priv_sessions (
     trainer INT,
     member INT,
     Foreign Key (trainer) References trainers(trainer_id),
-	Foreign Key (member) References members(member_id)
+	Foreign Key (member) References members(member_id),
+    Foreign Key (room_number) References rooms(number)
 );

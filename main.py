@@ -5,7 +5,7 @@ from datetime import date, timedelta, datetime, time
 con = psycopg2.connect(
     database="finalproject",
     user="postgres",
-    password="37293",
+    password="postgres",
     host="localhost",
     port= '5432'
     )
@@ -38,6 +38,13 @@ def manage_profile(member_id):
         elif choice == '2':
             weight_goal = input("Enter weight goal (in lbs): ")
             running_goal = input("Enter running goal (in kilometres): ")
+
+            try: 
+                val1 = int(weight_goal)
+                val2 = int(running_goal)
+            except ValueError: 
+                print("Invalid input.")
+                return
             cursor_obj.execute("UPDATE members SET weight_goal = %s WHERE member_id = %s", (weight_goal, member_id))
             con.commit()
             cursor_obj.execute("UPDATE members SET running_goal = %s WHERE member_id = %s", (running_goal, member_id))
@@ -48,6 +55,13 @@ def manage_profile(member_id):
         elif choice == '3':
             current_weight = input("Enter current weight (in lbs): ")
             current_height = input("Enter current height (in cm): ")
+
+            try: 
+                val1 = int(current_height)
+                val2 = int(current_weight)
+            except ValueError: 
+                print("Invalid input.")
+                return
 
             cursor_obj.execute("UPDATE members SET weight = %s WHERE member_id = %s;", (current_weight, member_id))
             con.commit()
@@ -78,6 +92,12 @@ def class_register(member_id):
         print(f"{i[0]:<10}{i[1]:<10}{i[2]:<12}{start:<15}{end:<14}{i[5]:<20}")
 
     class_request = input("Enter class ID to register: ")
+
+    try: 
+        val1 = int(class_request)
+    except ValueError: 
+        print("Invalid input.")
+        return
 
     cursor_obj.execute("SELECT start_time FROM schedule WHERE class_id = %s", (class_request))
     start_input = cursor_obj.fetchall()
@@ -124,7 +144,7 @@ def class_register(member_id):
 def drop_class(member_id):
     # display classes
     cursor_obj.execute(
-        "SELECT class_id, room_number, schedule.class_type, start_time, end_time, first_name FROM schedule JOIN trainers ON schedule.trainer = trainers.trainer_id ORDER BY class_id ASC;",
+        "SELECT class_id, room_number, schedule.class_type, start_time, end_time, first_name FROM schedule JOIN trainers ON schedule.trainer = trainers.trainer_id WHERE %s = ANY(members) ORDER BY class_id ASC;",
         (member_id))
     classes = cursor_obj.fetchall()
 
@@ -137,6 +157,22 @@ def drop_class(member_id):
         print(f"{i[0]:<10}{i[1]:<10}{i[2]:<12}{start:<15}{end:<14}{i[5]:<20}")
 
     class_request = input("Enter class ID to drop: ")
+
+    try: 
+        val1 = int(class_request)
+        val2 = int(end_input)
+    except ValueError: 
+        print("Invalid input.")
+        return
+
+    cursor_obj.execute("SELECT * FROM priv_sessions WHERE session_id = %s AND member = %s", (class_request, member_id))
+    class_select = cursor_obj.fetchall()
+
+    if not class_select:
+        print("Session does not exist.")
+        return
+    else: 
+        class_select = class_select[0]
 
     cursor_obj.execute("SELECT start_time FROM schedule WHERE class_id = %s", (class_request))
     start_input = cursor_obj.fetchall()
@@ -162,55 +198,78 @@ def cancel_session(member_id):
 
     sessions = cursor_obj.fetchall()
     print("\nPERSONAL SESSIONS")
-    print("Session ID   Room    Type        Start Time     End Time      Trainer")
-    print("---------------------------------------------------------------------")
+    print("Session ID   Room    Type           Start Time     End Time      Trainer")
+    print("-------------------------------------------------------------------------")
     for i in sessions:
         start = i[3].strftime('%H:%M:%S')
         end = i[4].strftime('%H:%M:%S')
 
-        print(f"{i[0]:<13}{i[1]:<8}{i[2]:<12}{start:<15}{end:<14}{i[5]:<15}")
+        print(f"{i[0]:<13}{i[1]:<8}{i[2]:<15}{start:<15}{end:<14}{i[5]:<15}")
+
+    if not sessions: 
+        print("You currently have no private sessions.")
+        return
 
     session_request = input("Enter session ID to drop: ")
 
-    cursor_obj.execute("SELECT start_time FROM schedule WHERE class_id = %s", (session_request))
-    start_input = cursor_obj.fetchall()
-
-    if not start_input:
-        print("Session does not exist.")
+    try: 
+        val1 = int(session_request)
+    except ValueError: 
+        print("Invalid input.")
         return
 
-    cursor_obj.execute("SELECT start_time FROM priv_sessions WHERE session_id = %s" % (session_request))
-    start_time = cursor_obj.fetchall()[0][0]
-    start_hour = start_time.hour
+    cursor_obj.execute("SELECT * FROM priv_sessions WHERE session_id = %s AND member = %s", (session_request, member_id))
+    class_select = cursor_obj.fetchall()
 
-    cursor_obj.execute("SELECT end_time FROM priv_sessions WHERE session_id = %s" % (session_request))
-    end_time = cursor_obj.fetchall()[0][0]
-    end_hour = end_time.hour
+    if not class_select:
+        print("Session does not exist.")
+        return
+    else: 
+        class_select = class_select[0]
 
-    cursor_obj.execute("SELECT room_number FROM priv_sessions WHERE session_id = %s" % session_request)
-    room_number = cursor_obj.fetchall()[0][0]
+    cursor_obj.execute("SELECT first_name, last_name FROM members WHERE member_id = %s", (member_id))
+    names = cursor_obj.fetchall()
+    payment = make_payment(names[0][0], names[0][1], -80)
 
-    cursor_obj.execute(("SELECT trainer FROM priv_sessions WHERE session_id = %s") % session_request)
-    trainer_id = cursor_obj.fetchall()[0][0]
+    if payment:
+        print("Refund successful.")
 
-    j = int(start_hour) - 7
-    for i in range(int(end_hour) - int(start_hour)):
-        cursor_obj.execute("UPDATE rooms SET times[%s] = TRUE WHERE number = %s;", (j, room_number))
-        j += 1
+        cursor_obj.execute("SELECT start_time FROM priv_sessions WHERE session_id = %s" % (session_request))
+        start_time = cursor_obj.fetchall()[0][0]
+        start_hour = start_time.hour
+
+        cursor_obj.execute("SELECT end_time FROM priv_sessions WHERE session_id = %s" % (session_request))
+        end_time = cursor_obj.fetchall()[0][0]
+        end_hour = end_time.hour
+
+        cursor_obj.execute("SELECT room_number FROM priv_sessions WHERE session_id = %s" % session_request)
+        room_number = cursor_obj.fetchall()[0][0]
+
+        cursor_obj.execute(("SELECT trainer FROM priv_sessions WHERE session_id = %s") % session_request)
+        trainer_id = cursor_obj.fetchall()[0][0]
+
+        j = int(start_hour) - 7
+        for i in range(int(end_hour) - int(start_hour)):
+            cursor_obj.execute("UPDATE rooms SET times[%s] = TRUE WHERE number = %s;", (j, room_number))
+            j += 1
+            con.commit()
+
+        k = int(start_hour) - 7
+        for i in range(int(end_hour) - int(start_hour)):
+            cursor_obj.execute("UPDATE trainers SET available[%s] = TRUE WHERE trainer_id = %s;", (k,
+                                                                                                    trainer_id))
+            k += 1
+            con.commit()
+
+        # !!! remove session here !!!
+        cursor_obj.execute("DELETE FROM priv_sessions WHERE session_id = %s;" %
+                        (session_request))
         con.commit()
 
-    k = int(start_hour) - 7
-    for i in range(int(end_hour) - int(start_hour)):
-        cursor_obj.execute("UPDATE trainers SET available[%s] = TRUE WHERE trainer_id = %s;", (k,
-                                                                                                trainer_id))
-        k += 1
-        con.commit()
+        print("Session cancelled.")
+    else: 
+        print("Refund cancelled.")
 
-    # !!! remove session here !!!
-    cursor_obj.execute("DELETE FROM priv_sessions WHERE session_id = %s;",
-                       (session_request))
-    con.commit()
-    print("Session canceled.")
 
 
 # member registration for private session
@@ -227,12 +286,17 @@ def session_register(member_id):
     else:
         trainer_request = trainer_request[0]
 
-    # show specific trainers schedule?
-
     start_time = input("Enter start time with trainer (24 hour clock, on the hour only): ")
     end_time = input("Enter end time with trainer (24 hour clock, on the hour only): ")
 
-    if int(start_time) < 8 or int(end_time) < 8:
+    try: 
+        val1 = int(start_time)
+        val2 = int(end_time)
+    except ValueError: 
+        print("Invalid input.")
+        return
+
+    if int(start_time) < 8 or int(start_time) > 17 or int(end_time) <= 5 or int(end_time) > 17:
         print("Times are outside of BuffBuddy hours or incorrect format.")
         return
 
@@ -263,20 +327,29 @@ def session_register(member_id):
     if open_trainer == True and open_member == True:
         cursor_obj.execute("SELECT first_name, last_name FROM members WHERE member_id = %s", (member_id))
         names = cursor_obj.fetchall()
-        make_payment(names[0][0], names[0][1], 80)
+        payment = make_payment(names[0][0], names[0][1], 80)
 
-        cursor_obj.execute(("SELECT times FROM rooms;"))
+        if payment == False:
+            print("Registration cancelled.")
+            return
+
+        cursor_obj.execute(("SELECT times FROM rooms ORDER BY number ASC;"))
         rooms = cursor_obj.fetchall()
 
+        print(rooms)
         room_number = 0
 
         index1 = 1
         for times in rooms:
             for available in times:
+                bool = True
                 for open in available[start_index:end_index]:
-                    if open == True:
-                        room_number = index1
-                    index1 += 1
+                    bool = bool and open
+                    
+                if bool == True:
+                    room_number = index1
+                    break
+                index1 += 1
 
         j = int(start_time) - 7
         for i in range(int(end_time) - int(start_time)):
@@ -352,13 +425,13 @@ def display_member_schedule(member_id):
 
     sessions = cursor_obj.fetchall()
     print("\nPERSONAL SESSIONS")
-    print("Room    Type        Start Time     End Time      Trainer")
-    print("--------------------------------------------------------")
+    print("Room    Type           Start Time     End Time      Trainer")
+    print("-------------------------------------------------------------")
     for i in sessions:
         start = i[2].strftime('%H:%M:%S')
         end = i[3].strftime('%H:%M:%S')
 
-        print(f"{i[0]:<8}{i[1]:<12}{start:<15}{end:<15}{i[4]:<14}")
+        print(f"{i[0]:<8}{i[1]:<15}{start:<15}{end:<14}{i[4]:<15}")
 
 def renew_membership(member_id):
     cursor_obj.execute("SELECT payment_date FROM members WHERE member_id = %s", (member_id))
@@ -444,7 +517,7 @@ def manage_membership(member_id):
 # display member menu
 def member_menu(member_id):
     choice = 0
-    while(choice != 5):
+    while(choice != 7):
         print("\nMEMBER MENU"
             "\n1. Manage profile",
             "\n2. Add/drop a class",
@@ -453,7 +526,7 @@ def member_menu(member_id):
             "\n5. Display personal schedule",
             "\n6. Manage membership"
             "\n7. Log out and return to main menu")
-        choice = input("\nSelect (1/2/3/4/5): ")
+        choice = input("\nSelect (1/2/3/4/5/6/7): ")
         if choice == '1':
             manage_profile(member_id)
 
@@ -489,7 +562,14 @@ def set_availability(trainer_id):
     start_time = input("\nEnter available start time (24 hour clock): ")
     end_time = input("Enter available end time (24 hour clock): ")
 
-    if int(start_time) < 8 or int(end_time) < 8:
+    try: 
+        val1 = int(start_time)
+        val2 = int(end_time)
+    except ValueError: 
+        print("Invalid input.")
+        return
+
+    if int(start_time) < 8 or int(end_time) < 5 or int(end_time) > 17:
         print("Times are outside of BuffBuddy hours or incorrect format.")
         return
 
@@ -522,14 +602,14 @@ def display_trainer_schedule(trainer_id):
                        "trainer = %s ORDER BY start_time ASC;", (trainer_id))
     trainer_schedule = cursor_obj.fetchall()
     print("\nREGULAR CLASSES")
-    print("Room   Type    Start Time     End Time    Members")
+    print("Room   Type            Start Time     End Time    Members")
     print("----------------------------------------------------------")
     for i in trainer_schedule:
         start = i[3].strftime('%H:%M:%S')
         end = i[4].strftime('%H:%M:%S')
         members = i[5]
 
-        print(f"{i[1]:<7}{i[2]:<8}{start:<15}{end:<11}",  members)
+        print(f"{i[1]:<7}{i[2]:<15}{start:<15}{end:<14}", members)
 
     cursor_obj.execute("SELECT room_number, priv_sessions.class_type, start_time, end_time, member FROM "
                        "priv_sessions JOIN "
@@ -537,13 +617,13 @@ def display_trainer_schedule(trainer_id):
                        "start_time ASC;", (trainer_id))
     sessions = cursor_obj.fetchall()
     print("\nPERSONAL SESSIONS")
-    print("Room    Type        Start Time     End Time      Member")
-    print("--------------------------------------------------------")
+    print("Room    Type           Start Time     End Time      Member")
+    print("-----------------------------------------------------------")
     for i in sessions:
         start = i[2].strftime('%H:%M:%S')
         end = i[3].strftime('%H:%M:%S')
 
-        print(f"{i[0]:<8}{i[1]:<12}{start:<15}{end:<14}{i[4]:<14}")
+        print(f"{i[0]:<8}{i[1]:<15}{start:<15}{end:<14}{i[4]:<15}")
 
 # display trainer menu 
 def trainer_menu(trainer_id):
@@ -579,7 +659,7 @@ def trainer_menu(trainer_id):
 # booking a room
 def book_room():
     print("\nTrue - available, False - not available\n")
-    cursor_obj.execute("SELECT * from rooms")
+    cursor_obj.execute("SELECT * from rooms ORDER BY number ASC;")
     rooms = cursor_obj.fetchall()
     print("Room                         Availability")
     print("         08:00 09:00 10:00 11:00 12:00 13:00 14:00 15:00 16:00")
@@ -591,7 +671,18 @@ def book_room():
     start_input = input("Enter start time: ")
     end_input = input("Enter end time: ")
     
-    cursor_obj.execute(("SELECT times FROM rooms;"))
+    try: 
+        val1 = int(start_input)
+        val2 = int(end_input)
+    except ValueError: 
+        print("Invalid input.")
+        return
+
+    if int(start_input) < 8 or int(start_input) > 17 or int(end_input) <= 5 or int(end_input) > 17:
+        print("Times are outside of BuffBuddy hours or incorrect format.")
+        return
+    
+    cursor_obj.execute(("SELECT times FROM rooms ORDER BY number ASC;"))
     rooms = cursor_obj.fetchall()
 
     start_index = int(start_input)-8
@@ -602,10 +693,16 @@ def book_room():
     index = 1
     for times in rooms:
         for available in times:
+            bool = True
             for open in available[start_index:end_index]:
-                if open == True: 
-                    open_rooms.append(int(index))
-                index+=1
+                bool = bool and open
+
+            if bool == True:
+                open_rooms.append(int(index))
+            
+            index+=1
+
+    open_rooms1 = list(set(open_rooms))
 
     if not open_rooms:
         print("No rooms available for this times.")
@@ -638,11 +735,17 @@ def book_room():
         print("Trainer is not available at this time")
         return 
     
-    print("Available rooms: ", open_rooms)
+    print("Available rooms: ", open_rooms1)
 
     choice = input("Enter room number: ")
 
-    if int(choice) not in open_rooms:
+    try: 
+        val1 = int(choice)
+    except ValueError: 
+        print("Invalid input.")
+        return
+
+    if int(choice) not in open_rooms1:
         print("Room %s is not available at this time.", choice)
         return
     
@@ -677,6 +780,13 @@ def equipment_maintenance():
         print(f"{i[0]:<15}{i[1]:<16}{i[2]:<11}{i[3]:<6}")
 
     eq_id = input("\nEnter EquipmentID to change quantity: ")
+
+    try: 
+        val1 = int(eq_id)
+    except ValueError: 
+        print("Invalid input.")
+        return
+
     cursor_obj.execute("SELECT quantity FROM equipment where equipment_id = %s;", (eq_id))
 
     if len(cursor_obj.fetchall()) == 0:
@@ -685,6 +795,13 @@ def equipment_maintenance():
 
     else:
         quantity = input("Enter new quantity: ")
+
+        try: 
+            val1 = int(quantity)
+        except ValueError: 
+            print("Invalid input.")
+            return
+        
         if quantity < 0:
             print("Invalid quantity.")
             return
@@ -694,7 +811,12 @@ def equipment_maintenance():
 
 # make a payment
 def make_payment(first_name, last_name, payment_amt):
-    choice = input("\nMake a payment for $%s: Y/N? " % payment_amt)
+
+    if payment_amt > 0:
+        choice = input("\nMake a payment for $%s: Y/N? " % payment_amt)
+    else: 
+        choice = input("\nConfirm refund for $%s: Y/N? " % abs(payment_amt))
+
     if (choice == 'Y'):
         # add code to update payment information for member
         payment_date = date.today()
@@ -702,17 +824,51 @@ def make_payment(first_name, last_name, payment_amt):
                            "VALUES (%s, %s, %s, %s);", (first_name, last_name, payment_date, payment_amt))
         con.commit()
         return True
-    print("Payment failed.")
+    
+    if payment_amt > 0:
+        print("Payment failed.")
+    else: 
+        print("Refund failed.")
     return False
 
 def payment_history():
-    cursor_obj.execute("SELECT * FROM payment_history;")
+    cursor_obj.execute("SELECT * FROM payment_history ORDER BY payment_date ASC;")
     history = cursor_obj.fetchall()
     print("\nFirst name  Last name    Payment date   Payment amount")
     print("------------------------------------------------------")
     for i in history:
         formatDate = i[2].strftime('%Y-%m-%d')
-        print(f"{i[0]:<12}{i[1]:<13}{formatDate:<14} ${i[3]:<8}")
+        if i[3] < 0:
+            amt = "-$" + str(abs(i[3]))
+        else:
+            amt = "$" + str(i[3])
+
+        print(f"{i[0]:<12}{i[1]:<13}{formatDate:<14} {amt:<8}")
+
+def view_schedule():
+    cursor_obj.execute("SELECT class_id, room_number, schedule.class_type, start_time, end_time, trainers.first_name, members FROM schedule JOIN trainers ON schedule.trainer = trainers.trainer_id ORDER BY start_time ASC;")
+    schedule = cursor_obj.fetchall()
+    print("\nClassID   Room      Type        Start Time     End Time      Trainer      Members")
+    print("-----------------------------------------------------------------------------------")
+    for i in schedule:
+        start = i[3].strftime('%H:%M:%S')
+        end = i[4].strftime('%H:%M:%S')
+
+        members = i[6]
+
+        print(f"{i[0]:<10}{i[1]:<10}{i[2]:<12}{start:<15}{end:<14}{i[5]:<12}", members)
+
+def view_personal_sessions():
+    cursor_obj.execute("SELECT session_id, room_number, priv_sessions.class_type, start_time, end_time, trainers.first_name, member FROM priv_sessions JOIN trainers ON priv_sessions.trainer = trainers.trainer_id ORDER BY start_time ASC;")
+    schedule = cursor_obj.fetchall()
+    print("\nSessionID   Room      Type             Start Time     End Time      Trainer     Member")
+    print("----------------------------------------------------------------------------------------")
+    for i in schedule:
+        start = i[3].strftime('%H:%M:%S')
+        end = i[4].strftime('%H:%M:%S')
+
+        print(f"{i[0]:<12}{i[1]:<11}{i[2]:<16}{start:<15}{end:<14}{i[5]:<12}{i[6]:<8}",)
+
 
 # display admin menu INC
 def admin_menu():
@@ -722,8 +878,10 @@ def admin_menu():
               "\n1. Room booking",
               "\n2. Equipment maintenance monitoring",
               "\n3. Show payment history",
-              "\n4. Log out and return to main menu")
-        choice = input("\nSelect (1/2/3/4): ")
+              "\n4. View class schedule",
+              "\n5. View personal sessions",
+              "\n6. Log out and return to main menu")
+        choice = input("\nSelect (1/2/3/4/5/6): ")
         if choice == '1':
             book_room()
 
@@ -732,9 +890,15 @@ def admin_menu():
 
         elif choice == '3':
             payment_history()
+
+        elif choice == '4':
+            view_schedule()
+
+        elif choice == '5':
+            view_personal_sessions()
             
         # returns to main menu
-        elif choice == '4':
+        elif choice == '6':
             print("Returning to main menu.")
             return
 
