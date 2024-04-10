@@ -27,7 +27,8 @@ VALUES ('Bob', 'Smith', 'Yoga', (ARRAY[FALSE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,
         ('Taylor', 'Swift', 'HIIT', (ARRAY[TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE])),
         ('Justin', 'Bieber', 'Aerobics', (ARRAY[TRUE,TRUE,TRUE,TRUE,TRUE,FALSE,FALSE,TRUE,TRUE])),
         ('Miley', 'Cyrus', 'Pilates', (ARRAY[TRUE,TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,TRUE,TRUE])),
-        ('Dwayne', 'Johnson', 'Boxing', (ARRAY[TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE,TRUE]));
+        ('Dwayne', 'Johnson', 'Boxing', (ARRAY[TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE,TRUE])),
+        ('Usain','Bolt','Running',(ARRAY[FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE]));
 
 INSERT INTO admin_staff (first_name, last_name) 
 VALUES ('John', 'Smith'), 
