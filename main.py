@@ -5,7 +5,7 @@ from datetime import date, timedelta, datetime, time
 con = psycopg2.connect(
     database="finalproject",
     user="postgres",
-    password="postgres",
+    password="37293",
     host="localhost",
     port= '5432'
     )
@@ -160,16 +160,16 @@ def drop_class(member_id):
 
     try: 
         val1 = int(class_request)
-        val2 = int(end_input)
     except ValueError: 
         print("Invalid input.")
         return
 
-    cursor_obj.execute("SELECT * FROM priv_sessions WHERE session_id = %s AND member = %s", (class_request, member_id))
+    cursor_obj.execute("SELECT * FROM schedule WHERE class_id = %s AND %s = ANY(members)", (class_request,
+                                                                                               member_id))
     class_select = cursor_obj.fetchall()
 
     if not class_select:
-        print("Session does not exist.")
+        print("Class does not exist.")
         return
     else: 
         class_select = class_select[0]
@@ -802,7 +802,7 @@ def equipment_maintenance():
             print("Invalid input.")
             return
         
-        if quantity < 0:
+        if int(quantity) < 0:
             print("Invalid quantity.")
             return
         cursor_obj.execute("UPDATE equipment SET quantity = %s WHERE equipment_id = %s;", (quantity, eq_id))
